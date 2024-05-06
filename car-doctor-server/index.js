@@ -9,7 +9,11 @@ const cookieParser = require('cookie-parser');
 
 // Middleware
 app.use(cors({
-    origin: ['http://localhost:5173'],
+    origin: [
+        // 'http://localhost:5173',
+        'https://car-doctor-8860b.web.app',
+        'https://car-doctor-8860b.firebaseapp.com'
+    ],
     credentials: true
 }));
 app.use(express.json());
@@ -25,9 +29,12 @@ const logger = async (req, res, next) => {
 const verifyToken = async (req, res, next) => {
     const token = req.cookies?.token;
     console.log("Value of token in middleware", token)
+
+    // token na thakle
     if (!token) {
         return res.status(401).send({ message: 'Unauthorized access' })
     }
+    // token thakle er moddhe asbe and ai token a kono vull thakele err hobe. sei err k akta message dia return kore diasi. 
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
         // error
         if (err) {
@@ -37,6 +44,7 @@ const verifyToken = async (req, res, next) => {
 
         // if token is valid then it would be decoded
         console.log("Value in the token: ", decoded)
+        req.user = decoded;
         next()
     })
 }
@@ -62,20 +70,47 @@ async function run() {
         const bookingCollection = client.db("carDoctor").collection("booking");
 
 
-        // auth related api
-        app.post('/jwt', logger, async (req, res) => {
+        // // auth related api
+        // app.post('/jwt', logger, async (req, res) => {
+        //     const user = req.body;
+        //     console.log(user);
+        //     const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
+        //     res
+        //         .cookie('token', token, {
+        // httpOnly: true,
+        // secure: false,   
+        // secure: process.env.NODE_ENV === 'production',
+        // sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict'
+        //         })
+        //         .send({ success: true })
+        // })
+
+
+        // Recap auth related api 
+        app.post('/jwt', async (req, res) => {
             const user = req.body;
-            console.log(user);
-            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
-            res
-                .cookie('token', token, {
-                    httpOnly: true,
-                    secure: false,   //http://localhost:5000/login
-                })
+            console.log("User for token ", user);
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "1h" })
+
+            res.cookie('token', token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict'
+            })
                 .send({ success: true })
         })
 
-
+        // cookie remove korbo, jokhon /logout path a jabe.
+        app.post('/logout', async (req, res) => {
+            const user = req.body;
+            console.log("logged out user ", user)
+            res.clearCookie('token', {
+                maxAge: 0,
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict'
+            }).send({ success: true })
+        })
 
         // get all data in servicess collection
         app.get("/servicess", logger, async (req, res) => {
@@ -105,10 +140,10 @@ async function run() {
         // data special vabe get korbo
         app.get('/bookings', logger, verifyToken, async (req, res) => {
             console.log(req.query.email);
-            console.log("Tok tok token", req.cookies.token)
+            console.log("token owner info: ", req.user)
 
             // check now user valid kina
-            if (req.query.email !== req.user.email) {
+            if (req.user.email !== req.query.email) {
                 return res.send(403).send({ message: "Forbidden access" })
             }
 
@@ -151,3 +186,6 @@ app.get("/", (req, res) => {
 app.listen(port, () => {
     console.log(`car doctor is runig ${port}`)
 })
+
+
+

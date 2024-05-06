@@ -4,13 +4,17 @@ import { useContext } from "react";
 import { AuthContext } from "../Provider/AuthProvider";
 
 const Navbar = () => {
-    const {user} = useContext(AuthContext);
+    const {user, logOut} = useContext(AuthContext);
+    const handleLogOut = ()=>{
+        logOut()
+    }
 
     const links = <>
               <li><Link to="/" >Home</Link></li>
               <li><Link to="/login" >Login</Link></li>
               <li><Link to="/register" >Register</Link></li>
               <li><Link to="/bookings" >bookings</Link></li>
+              <li><Link onClick={handleLogOut} >Log Out</Link></li>
     </>
     return (
         <div className="navbar bg-base-100">

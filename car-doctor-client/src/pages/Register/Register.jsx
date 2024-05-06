@@ -1,10 +1,14 @@
 import { useContext } from "react";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../Provider/AuthProvider";
+import useAuth from "../../hooks/useAuth";
 
 const Register = () => {
 
-    const { createUser } = useContext(AuthContext);
+    // const { createUser } = useContext(AuthContext);
+
+    // useContext er alternative useAuth ba custom hook use koresi.
+    const { createUser } = useAuth()
 
     const register = (e) => {
         e.preventDefault();

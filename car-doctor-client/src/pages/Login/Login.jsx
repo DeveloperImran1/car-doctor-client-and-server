@@ -2,9 +2,14 @@ import { useContext } from "react";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../Provider/AuthProvider";
 import axios from "axios";
+import useAuth from "../../hooks/useAuth";
 
 const Login = () => {
-    const { singnIn } = useContext(AuthContext);
+    // const { singnIn } = useContext(AuthContext);
+    
+    // useContext er poriborte amader create kora custom hook usee koresi.
+    const {singnIn} = useAuth();
+    console.log(singnIn)
 
     const handleLogin = (e) => {
         e.preventDefault();
@@ -18,11 +23,11 @@ const Login = () => {
                 const loggedInUser = result.user;
                 console.log(loggedInUser)
                 const user = { email }
-                axios.post("http://localhost:5000/jwt", user, {withCredentials: true})
-                .then(res => {
-                    console.log(res.data)
-                 
-                })
+                // axios.post("https://car-doctor-server-one-plum.vercel.app/jwt", user, {withCredentials: true})
+                // .then(res => {
+                //     console.log(res.data)
+
+                // })
             })
             .catch(err => console.log(err))
 
